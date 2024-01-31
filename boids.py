@@ -31,7 +31,7 @@ class Boid():
         self.height = 30
         self.colour = [255, 255, 255, 255]
 
-    def draw(self):
+    def draw(self) -> None:
         # Create x,y points for triangle, based on current self x,y
         x1 = self.x - self.width
         y1 = self.y
@@ -76,7 +76,7 @@ class Boid():
         # Boid - triangle
         arcade.draw_triangle_filled(x1, y1, x2, y2, x3, y3, (255,255,255, 255))
 
-    def move(self):
+    def move(self) -> None:
         self.x += self.vel_x
         self.y += self.vel_y
 
@@ -90,9 +90,10 @@ class Boid():
         if self.y > self.window_height:
             self.vel_y = -self.vel_y
 
-    def vector_shift(self):
-        self.vel_x = self.vel_x + randrange(-10,10,1)/10
-        self.vel_y = self.vel_y + randrange(-10,10,1)/10
+    def vector_shift(self, avg_x: float, avg_y: float) -> None:
+        # Testing out Cohesion
+        self.vel_x += (self.x + avg_x) * 0.001
+        self.vel_y += (self.y + avg_y) * 0.001
 
-    def debug_vals(self):
+    def debug_vals(self) -> None:
         print(f"Ball [{self.id}]x: {self.x} y: {self.y} x_vel:{self.vel_x} y_vel:{self.vel_y}")
