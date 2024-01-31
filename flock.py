@@ -1,7 +1,12 @@
 import os
+
+import arcade.color
 from dotenv import load_dotenv
 from arcade import Window
+from random import randrange
+
 from boids import Boid
+
 
 load_dotenv()
 
@@ -21,17 +26,22 @@ class Flock(Window):
 
         # Loop and create the boids
         for i in range(MAXBOIDS):
-            new_boid = Boid(i, HEIGHT, WIDTH, 3, 3)
+            vel_x = randrange(1,3,1)
+            vel_y = randrange(1, 3, 1)
+
+            new_boid = Boid(i, HEIGHT, WIDTH, vel_x, vel_y)
             # new_boid.debug_vals()
             self.boids_list.append(new_boid)
 
     def on_update(self, delta_time: float):
         for boid in self.boids_list:
+            boid.vector_shift()
             boid.move()
             # boid.debug_vals()
 
     def on_draw(self):
         self.clear()
+
         for boid in self.boids_list:
             boid.draw()
             # boid.debug_vals()
