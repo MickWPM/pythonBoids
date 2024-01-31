@@ -1,14 +1,13 @@
 # Boids in Python
 
-An example project, creating [Boids](https://en.wikipedia.org/wiki/Boids) in Python using [Turtle](https://docs.python.org/3/library/turtle.html#turtle.forward) entities.
+An example project, creating [Boids](https://en.wikipedia.org/wiki/Boids) in Python using [The Python Arcade Library](https://api.arcade.academy/en/latest/index.html) entities.
 
 ### Setup
 
-No specific setup is required. To run
+1. Install the required packages
+
+`pip3 install -r requirements.txt`
+
+2. Run main
 
 `python3 main.py`
-
-### Issues / TODO Fixes
-
-1. All configuration settings are baked into the code.
-2. The code is not optimised, running more than ~20 boid entities is slow.
