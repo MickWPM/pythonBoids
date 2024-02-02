@@ -1,6 +1,7 @@
 import arcade
 from random import randrange
-from math import atan, sin, cos, sqrt, pi
+from math import atan, sin, cos, sqrt
+from statistics import fmean
 
 
 class Boid():
@@ -13,23 +14,37 @@ class Boid():
     vel_y: float = 0
     vel_xy: float = 0
     theta: float = 0
+    range_min: int = 0
+    range_max: int = 0
     window_height: int = 0
-    window_width: int = 0
+    window_width: int = 0           # Window width
+    buffer: int = 0                 # Buffer from the edge of the window to the frame
     colour: list = []
+    debug: bool = False
 
-    def __init__(self, id: int, height: int, width: int, x_vel: int, y_vel: int):
+    def __init__(self, id: int, height: int, width: int, buffer: int, x_vel: int, y_vel: int, range_min: int, range_max: int) -> None:
         self.id = id
-        self.window_height = height
-        self.window_width = width
+        self.debug = True
+
+        # Set initial position and velocity
         self.x = randrange(round(width / 4), round(width - (width / 4)), 1)
         self.y = randrange(round(height / 4), round(height - (height / 4)), 1)
         self.vel_x = x_vel
         self.vel_y = y_vel
         self.theta = atan(y_vel/x_vel)
         self.vel_xy = sqrt(self.vel_x**2 + self.vel_y**2)
+
+        # Define the boid
         self.width = 10
         self.height = 30
         self.colour = [255, 255, 255, 255]
+
+        # Define window parameters
+        self.range_min = range_min
+        self.range_max = range_max
+        self.window_height = height
+        self.window_width = width
+        self.buffer = buffer
 
     def draw(self) -> None:
         # Create x,y points for triangle, based on current self x,y
@@ -75,25 +90,51 @@ class Boid():
         arcade.draw_line(self.x, self.y, x3, y3, arcade.color.GRAY, 2)
         # Boid - triangle
         arcade.draw_triangle_filled(x1, y1, x2, y2, x3, y3, (255,255,255, 255))
+        # draw range rings
+        if self.debug:
+            arcade.draw_circle_outline(self.x, self.y, self.range_min,(255,0,0, 200), 2,0)
+            arcade.draw_circle_outline(self.x, self.y, self.range_max,(255,255,0, 150), 2,0)
 
-    def move(self) -> None:
+    def move(self, boids_x: list, boids_y: list) -> None:
+        sep_min_x: int = 0
+        sep_min_y: int = 0
+
+        # Separation
+        # todo: add in additional range ring, as a buffer
+        for flock_boid in boids_x:
+            if (self.x - self.range_min) < flock_boid < self.x:
+                sep_min_x -= 1
+            if self.x < flock_boid < (self.x + self.range_min):
+                sep_min_x += 1
+        for flock_boid in boids_y:
+            if (self.y - self.range_min) < flock_boid < self.y:
+                sep_min_y -= 1
+            if self.y < flock_boid < (self.y + self.range_min):
+                sep_min_y += 1
+
+        # Cohesion
+        cohesion_x = (self.x - fmean(boids_x)) * 0.001
+        cohesion_y = (self.x - fmean(boids_y)) * 0.001
+
+        self.vel_x += sep_min_x * 1.2 + cohesion_x * 1.1
+        self.vel_y += sep_min_y * 1.2 + cohesion_y * 1.1
+
         self.x += self.vel_x
         self.y += self.vel_y
 
         # Wall bounding
-        if self.x < 0:
+        if self.x < (0 + self.buffer):
             self.vel_x = -self.vel_x
-        if self.x > self.window_width:
+            self.x += abs(self.vel_x)
+        if self.x > (self.window_width - self.buffer):
             self.vel_x = -self.vel_x
-        if self.y < 0:
+            self.x -= abs(self.vel_x)
+        if self.y < (0 + self.buffer):
             self.vel_y = -self.vel_y
-        if self.y > self.window_height:
+            self.y += abs(self.vel_y)
+        if self.y > (self.window_height - self.buffer):
             self.vel_y = -self.vel_y
-
-    def vector_shift(self, avg_x: float, avg_y: float) -> None:
-        # Testing out Cohesion
-        self.vel_x += (self.x + avg_x) * 0.001
-        self.vel_y += (self.y + avg_y) * 0.001
+            self.y -= abs(self.vel_y)
 
     def debug_vals(self) -> None:
         print(f"Ball [{self.id}]x: {self.x} y: {self.y} x_vel:{self.vel_x} y_vel:{self.vel_y}")
