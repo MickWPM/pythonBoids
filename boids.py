@@ -2,6 +2,7 @@ import arcade
 from random import randrange
 from math import atan, sin, cos, sqrt
 from statistics import fmean
+from numpy import clip
 
 
 class Boid():
@@ -12,7 +13,8 @@ class Boid():
     height: int = 0
     vel_x: float = 0
     vel_y: float = 0
-    vel_xy: float = 0
+    speed_max: float = 0
+    speed_min: float = 0
     theta: float = 0
     range_min: int = 0
     range_max: int = 0
@@ -31,8 +33,9 @@ class Boid():
         self.y = randrange(round(height / 4), round(height - (height / 4)), 1)
         self.vel_x = x_vel
         self.vel_y = y_vel
+        self.speed_max = 30
+        self.speed_min = 1
         self.theta = atan(y_vel/x_vel)
-        self.vel_xy = sqrt(self.vel_x**2 + self.vel_y**2)
 
         # Define the boid
         self.width = 10
@@ -95,30 +98,48 @@ class Boid():
             arcade.draw_circle_outline(self.x, self.y, self.range_min,(255,0,0, 200), 2,0)
             arcade.draw_circle_outline(self.x, self.y, self.range_max,(255,255,0, 150), 2,0)
 
-    def move(self, boids_x: list, boids_y: list) -> None:
-        sep_min_x: int = 0
-        sep_min_y: int = 0
-
+    def move(self, boids_x: list, boids_y: list, boids_vel_x: list, boids_vel_y: list) -> None:
         # Separation
+        seperation_x: float = 0
+        seperation_y: float = 0
         # todo: add in additional range ring, as a buffer
         for flock_boid in boids_x:
             if (self.x - self.range_min) < flock_boid < self.x:
-                sep_min_x -= 1
+                seperation_x -= 1
             if self.x < flock_boid < (self.x + self.range_min):
-                sep_min_x += 1
+                seperation_x += 1
         for flock_boid in boids_y:
             if (self.y - self.range_min) < flock_boid < self.y:
-                sep_min_y -= 1
+                seperation_y -= 1
             if self.y < flock_boid < (self.y + self.range_min):
-                sep_min_y += 1
+                seperation_y += 1
+        seperation_x = seperation_x - self.vel_x
+        seperation_y = seperation_y - self.vel_y
+
+        print(f"seperation x:{seperation_x} y:{seperation_y}")
 
         # Cohesion
-        cohesion_x = (self.x - fmean(boids_x)) * 0.001
-        cohesion_y = (self.x - fmean(boids_y)) * 0.001
+        cohesion_x = fmean(boids_x) - self.x
+        cohesion_y = fmean(boids_y) - self.y
 
-        self.vel_x += sep_min_x * 1.2 + cohesion_x * 1.1
-        self.vel_y += sep_min_y * 1.2 + cohesion_y * 1.1
+        # Alignment
+        alignment_x = fmean(boids_vel_x) - self.vel_x
+        alignment_y = fmean(boids_vel_y) - self.vel_y
 
+        # Set the velocity vector for the boids
+        self.vel_x += (seperation_x * 0.05 + cohesion_x * 0.0005 + alignment_x * 0.05)
+        self.vel_y += (seperation_y * 0.05 + cohesion_y * 0.0005 + alignment_y * 0.05)
+
+        # Set speed limits
+        speed = sqrt(self.vel_x * self.vel_x + self.vel_y * self.vel_y)
+        if speed > self.speed_max:
+            self.vel_x = (self.vel_x / speed) * self.speed_max
+            self.vel_y = (self.vel_y / speed) * self.speed_max
+        if speed < self.speed_min:
+            self.vel_x = (self.vel_x / speed) * self.speed_min
+            self.vel_y = (self.vel_y / speed) * self.speed_min
+
+        # Update position with new velocity
         self.x += self.vel_x
         self.y += self.vel_y
 

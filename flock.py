@@ -59,10 +59,12 @@ class Flock(Window):
             # Calculate the middle of the flock / average
             self.boids_x[key] = boid.x
             self.boids_y[key] = boid.y
-            # self.avg_x = fmean(self.boids_x)
-            # self.avg_y = fmean(self.boids_y)
+            self.boids_vel_x[key] = boid.vel_x
+            self.boids_vel_y[key] = boid.vel_y
 
-            boid.move(self.boids_x, self.boids_y)
+            # todo: change this from passing in lists to pass the boid list
+
+            boid.move(self.boids_x, self.boids_y, self.boids_vel_x, self.boids_vel_y)
             # boid.debug_vals()
 
     def on_draw(self):
