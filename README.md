@@ -10,6 +10,8 @@ Boids are a way to represent a complex system using a set of simple rules. This 
 
 **Cohesion**: steer to move towards the average position (center of mass) of local flockmates
 
+![boids.png](boids.png)
+
 ### Setup
 
 1. Install the required packages

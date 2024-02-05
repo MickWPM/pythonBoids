@@ -26,20 +26,20 @@ class Boid():
 
     def __init__(self, id: int, height: int, width: int, buffer: int, x_vel: int, y_vel: int, range_min: int, range_max: int) -> None:
         self.id = id
-        self.debug = True
+        self.debug = False
 
         # Set initial position and velocity
         self.x = randrange(round(width / 4), round(width - (width / 4)), 1)
         self.y = randrange(round(height / 4), round(height - (height / 4)), 1)
         self.vel_x = x_vel
         self.vel_y = y_vel
-        self.speed_max = 30
+        self.speed_max = 5
         self.speed_min = 1
         self.theta = atan(y_vel/x_vel)
 
         # Define the boid
-        self.width = 10
-        self.height = 30
+        self.width = 5
+        self.height = 10
         self.colour = [255, 255, 255, 255]
 
         # Define window parameters
@@ -64,13 +64,6 @@ class Boid():
             self.theta = atan(self.vel_y)
         else:
             self.theta = atan(self.vel_y / self.vel_x)
-        # a = round(self.width * sin(self.theta))
-        # b = round(self.width * cos(self.theta))
-        # # print(f"1 a:{a} b:{b}")
-        # x1 = self.x - b
-        # y1 = self.y - a
-        # x2 = self.x + b
-        # y2 = self.y + a
         # Calculate the heading and adjust for x3
         a = abs(round((self.height) * sin(self.theta)))
         b = abs(round((self.height) * cos(self.theta)))
@@ -98,37 +91,33 @@ class Boid():
             arcade.draw_circle_outline(self.x, self.y, self.range_min,(255,0,0, 200), 2,0)
             arcade.draw_circle_outline(self.x, self.y, self.range_max,(255,255,0, 150), 2,0)
 
-    def move(self, boids_x: list, boids_y: list, boids_vel_x: list, boids_vel_y: list) -> None:
+    # def move(self, boids_x: list, boids_y: list, boids_vel_x: list, boids_vel_y: list) -> None:
+    def move(self, boids_list: list, boids_x: list, boids_y: list, boids_vel_x: list, boids_vel_y: list) -> None:
         # Separation
         seperation_x: float = 0
         seperation_y: float = 0
         # todo: add in additional range ring, as a buffer
-        for flock_boid in boids_x:
-            if (self.x - self.range_min) < flock_boid < self.x:
-                seperation_x -= 1
-            if self.x < flock_boid < (self.x + self.range_min):
-                seperation_x += 1
-        for flock_boid in boids_y:
-            if (self.y - self.range_min) < flock_boid < self.y:
-                seperation_y -= 1
-            if self.y < flock_boid < (self.y + self.range_min):
-                seperation_y += 1
-        seperation_x = seperation_x - self.vel_x
-        seperation_y = seperation_y - self.vel_y
 
-        print(f"seperation x:{seperation_x} y:{seperation_y}")
+        for boid in boids_list:
+            delta_boid = sqrt((self.x - abs(boid.x))*(self.x - abs(boid.x))+(self.y - abs(boid.y))*(self.y - abs(boid.y)))
+            if 0 < delta_boid < self.range_min:
+                seperation_x = -self.vel_x
+                seperation_y = -self.vel_y
+            else:
+                seperation_x = -self.vel_x
+                seperation_y = -self.vel_y
 
         # Cohesion
         cohesion_x = fmean(boids_x) - self.x
         cohesion_y = fmean(boids_y) - self.y
 
         # Alignment
-        alignment_x = fmean(boids_vel_x) - self.vel_x
-        alignment_y = fmean(boids_vel_y) - self.vel_y
+        alignment_x = self.vel_x - fmean(boids_vel_x)
+        alignment_y = self.vel_y - fmean(boids_vel_y)
 
         # Set the velocity vector for the boids
-        self.vel_x += (seperation_x * 0.05 + cohesion_x * 0.0005 + alignment_x * 0.05)
-        self.vel_y += (seperation_y * 0.05 + cohesion_y * 0.0005 + alignment_y * 0.05)
+        self.vel_x += (seperation_x * 0.04 + cohesion_x * 0.005 + alignment_x * 0.06)
+        self.vel_y += (seperation_y * 0.04 + cohesion_y * 0.005 + alignment_y * 0.06)
 
         # Set speed limits
         speed = sqrt(self.vel_x * self.vel_x + self.vel_y * self.vel_y)
@@ -138,6 +127,8 @@ class Boid():
         if speed < self.speed_min:
             self.vel_x = (self.vel_x / speed) * self.speed_min
             self.vel_y = (self.vel_y / speed) * self.speed_min
+
+        # print(f"Velocity: {self.vel_x}::{self.vel_y}")
 
         # Update position with new velocity
         self.x += self.vel_x

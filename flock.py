@@ -36,7 +36,7 @@ class Flock(Window):
         # Call the parent __init__
         super().__init__(WIDTH, HEIGHT, WINDOW_TITLE)
 
-        self.debug = True
+        self.debug = False
 
         self.boids_x = list(repeat(0, MAXBOIDS))
         self.boids_y = list(repeat(0, MAXBOIDS))
@@ -54,18 +54,13 @@ class Flock(Window):
 
     def on_update(self, delta_time: float):
         for key, boid in enumerate(self.boids_list):
-            # Cohesion
-            # Update the flock boid position for this boid[i[, then
-            # Calculate the middle of the flock / average
+            # boid.move(self.boids_x, self.boids_y, self.boids_vel_x, self.boids_vel_y)
+            boid.move(self.boids_list, self.boids_x, self.boids_y, self.boids_vel_x, self.boids_vel_y)
+
             self.boids_x[key] = boid.x
             self.boids_y[key] = boid.y
             self.boids_vel_x[key] = boid.vel_x
             self.boids_vel_y[key] = boid.vel_y
-
-            # todo: change this from passing in lists to pass the boid list
-
-            boid.move(self.boids_x, self.boids_y, self.boids_vel_x, self.boids_vel_y)
-            # boid.debug_vals()
 
     def on_draw(self):
         self.clear()
