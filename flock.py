@@ -16,7 +16,7 @@ WIDTH: int = int(os.getenv('WIDTH'))
 HEIGHT: int = int(os.getenv('HEIGHT'))
 MAXBOIDS: int = int(os.getenv('MAXBOIDS'))
 RANGE_MIN: int = int(os.getenv('RANGE_MIN'))
-RANGE_MAX: int = int(os.getenv('RANGE_MAX'))
+RANGE_FOV: int = int(os.getenv('RANGE_FOV'))
 
 
 class Flock(Window):
@@ -43,19 +43,26 @@ class Flock(Window):
         self.boids_vel_x = list(repeat(0, MAXBOIDS))
         self.boids_vel_y = list(repeat(0, MAXBOIDS))
 
+        leader_id = randrange(0, MAXBOIDS,1)
+
         # Loop and create the boids
         for i in range(MAXBOIDS):
             vel_x = randrange(1,3,1)
             vel_y = randrange(1, 3, 1)
 
-            new_boid = Boid(i, HEIGHT, WIDTH, self.buffer, vel_x, vel_y, RANGE_MIN, RANGE_MAX)
+            if leader_id == i:
+                leader = True
+            else:
+                leader = False
+
+            new_boid = Boid(i, HEIGHT, WIDTH, self.buffer, vel_x, vel_y, RANGE_MIN, RANGE_FOV, leader)
             # new_boid.debug_vals()
             self.boids_list.append(new_boid)
 
     def on_update(self, delta_time: float):
         for key, boid in enumerate(self.boids_list):
             # boid.move(self.boids_x, self.boids_y, self.boids_vel_x, self.boids_vel_y)
-            boid.move(self.boids_list, self.boids_x, self.boids_y, self.boids_vel_x, self.boids_vel_y)
+            boid.move(self.boids_list)
 
             self.boids_x[key] = boid.x
             self.boids_y[key] = boid.y
