@@ -9,6 +9,7 @@ from flock import Flock
 
 __version__ = '0.1'
 
+
 def main():
     Flock()
     arcade.run()
