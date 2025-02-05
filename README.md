@@ -12,6 +12,16 @@ Boids are a way to represent a complex system using a set of simple rules. This 
 
 ![boids.png](boids.png)
 
+Boids chase the mouse when active, status is reported in the top right.
+Mouse:
+- False: Mouse not active
+- True: Boids will chase the mouse
+Follow:
+- True: Boids will follow the mouse
+- False: Boids will run away from the mouse
+
+![boids.png](boids.gif)
+
 ### Setup
 
 1. Install the required packages

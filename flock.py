@@ -17,6 +17,8 @@ MAXBOIDS: int = int(os.getenv('MAXBOIDS'))
 RANGE_MIN: int = int(os.getenv('RANGE_MIN'))
 RANGE_FOV: int = int(os.getenv('RANGE_FOV'))
 
+BUTTON_LEFT: int = 1
+BUTTON_RIGHT: int = 4
 
 class Flock(Window):
     boids_list: list = []
@@ -30,6 +32,11 @@ class Flock(Window):
     buffer: int = 15
     debug: bool = False
     colour: list = []
+
+    mouse_active: bool = False
+    mouse_chase: bool = True
+    mouse_x:float = 0
+    mouse_y: float = 0
 
     def __init__(self):
         """
@@ -78,7 +85,7 @@ class Flock(Window):
 
     def on_update(self, delta_time: float):
         for key, boid in enumerate(self.boids_list):
-            boid.move(self.boids_list)
+            boid.move(self.boids_list, self.mouse_x, self.mouse_y, self.mouse_chase)
 
             self.boids_x[key] = boid.x
             self.boids_y[key] = boid.y
@@ -94,6 +101,25 @@ class Flock(Window):
                                       2,
                                       0)
 
+        # Add Text
+        arcade.draw_text(f"Mouse: {self.mouse_active}",
+                    WIDTH - 150,
+                    HEIGHT - 50,
+                    [255, 255, 255, 128],
+                    12)
+        arcade.draw_text(f"Follow: {self.mouse_chase}",
+                         WIDTH - 150,
+                         HEIGHT - 70,
+                         [255, 255, 255, 128],
+                         12)
+
+        # Draw mouse
+        if self.mouse_active:
+            arcade.draw_circle_filled(self.mouse_x,
+                                      self.mouse_y,
+                                      5,
+                                      arcade.color.GREEN)
+
         # Draw the boid average position
         if self.debug:
             self.avg_x = fmean(self.boids_x)
@@ -104,3 +130,21 @@ class Flock(Window):
             boid.draw()
             if self.debug:
                 boid.debug_vals()
+
+    def on_mouse_motion(self, x, y, dx, dy):
+        """
+        Called whenever the mouse moves.
+        """
+        if self.mouse_active:
+            self.mouse_x = x
+            self.mouse_y = y
+        else:
+            self.mouse_x = 0
+            self.mouse_y = 0
+
+    def on_mouse_press(self, x, y, button, modifiers):
+        if button == BUTTON_LEFT:
+            self.mouse_active = not self.mouse_active
+
+        if button == BUTTON_RIGHT:
+            self.mouse_chase = not self.mouse_chase

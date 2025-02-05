@@ -112,7 +112,11 @@ class Boid():
             arcade.draw_circle_outline(self.x, self.y, self.range_min, (255, 0, 0, 200), 2, 0)
 
     # def move(self, boids_x: list, boids_y: list, boids_vel_x: list, boids_vel_y: list) -> None:
-    def move(self, boid_flock: list) -> None:
+    def move(self,
+             boid_flock: list,
+             mouse_x: float,
+             mouse_y: float,
+             mouse_chase: bool) -> None:
         """
         Move the boid
         """
@@ -123,6 +127,8 @@ class Boid():
         cohesion_xavg: float = 0
         cohesion_yavg: float = 0
         neighbour_count: int = 0
+        mouse_velx: float = 0
+        mouse_vely: float = 0
 
         # Get the flock position and velocity data
         for boid in boid_flock:
@@ -142,6 +148,7 @@ class Boid():
         seperation_factor = 0.1
         alignment_factor = 0.05
         cohesion_factor = 0.01
+        mouse_factor = 0.005
 
         seperation_x = seperation_dx * seperation_factor
         seperation_y = separation_dy * seperation_factor
@@ -150,16 +157,31 @@ class Boid():
         cohesion_x = ((cohesion_xavg / neighbour_count) - self.x) * cohesion_factor
         cohesion_y = ((cohesion_yavg / neighbour_count) - self.y) * cohesion_factor
 
+        if 0 < mouse_x and 0 < mouse_y:
+            dx = mouse_x - self.x
+            dy = mouse_y - self.y
+            distance = sqrt(dx ** 2 + dy ** 2)
+
+            if mouse_chase:
+                mouse_velx = dx * mouse_factor
+                mouse_vely = dy * mouse_factor
+            else:
+                mouse_velx = (-dx / distance) * mouse_factor * 10
+                mouse_vely = (-dy / distance) * mouse_factor * 10
+
         # Update velocity with boid properties
-        self.vel_x += seperation_x + alignment_x + cohesion_x
-        self.vel_y += seperation_y + alignment_y + cohesion_y
+        self.vel_x += seperation_x + alignment_x + cohesion_x + mouse_velx
+        self.vel_y += seperation_y + alignment_y + cohesion_y + mouse_vely
 
         # Set speed limits
         speed = sqrt(self.vel_x * self.vel_x + self.vel_y * self.vel_y)
-        if speed > self.speed_max:
+        if speed == 0:
+            self.vel_x = self.speed_min
+            self.vel_y = self.speed_min
+        elif speed > self.speed_max:
             self.vel_x = (self.vel_x / speed) * self.speed_max
             self.vel_y = (self.vel_y / speed) * self.speed_max
-        if speed < self.speed_min:
+        elif speed < self.speed_min:
             self.vel_x = (self.vel_x / speed) * self.speed_min
             self.vel_y = (self.vel_y / speed) * self.speed_min
 
