@@ -5,13 +5,14 @@
 Python Implementation of the Boid Algorithm
 """
 import arcade
-from flock import Flock
+
+from BoidsWindow import BoidsWindow
 
 __version__ = '0.1'
 
 
 def main():
-    Flock()
+    BoidsWindow()
     arcade.run()
 
 

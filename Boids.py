@@ -1,35 +1,11 @@
 import arcade
-from random import randrange
-from math import atan, sin, cos, sqrt, radians
-from statistics import fmean
-from numpy import clip
+from math import atan, sin, cos, sqrt
+
+from Mouse import Mouse
+from ViewWindow import ViewWindow
 
 
 class Boid():
-    # Position and velocity
-    x: float = 0
-    y: float = 0
-    vel_x: float = 0
-    vel_y: float = 0
-    speed_max: float = 0
-    speed_min: float = 1
-    # Boid properties
-    width = 5
-    height = 10
-    colour: list = []
-    theta: float = 0
-    # Flock fields
-    flock_count: int = 0
-    range_min: int = 0
-    max_change: int = 0
-    range_fov: int = 0
-    # Window details
-    window_height: int = 0
-    window_width: int = 0
-    buffer: int = 0  # Buffer from the edge of the window to the frame
-    buffer_turn: int = 0
-    debug: bool = False
-
     def __init__(self,
                  flock_count: int,
                  pos_x: float,
@@ -37,43 +13,49 @@ class Boid():
                  x_vel: int,
                  y_vel: int,
                  colour: list,
+                 boid_width: int,
+                 boid_height: int,
                  range_min: int,
                  range_fov: int,
                  speed_max: int,
-                 window_height: int,
-                 window_width: int,
-                 buffer: int) -> None:
+                 view_window: ViewWindow) -> None:
         """
          Boid constructor
          :param flock_count: number of boids in flock
-         :param window_height: height of the window
-         :param window_width: width of the window
-         :param buffer: buffer size of the window
-         :param x_vel: x velocity of the boid
-         :param y_vel: y velocity of the boid
-         :param colour: colour of the boid
-         :param range_min: minimum range of the boid
-         :param range_fov: fov of the boid
+         :param pos_x: x position of boid
+         :param pos_y: y position of boid
+         :param x_vel: x velocity of boid
+         :param y_vel: y velocity of boid
+         :param colour: colour of boid
+         :param boid_width: width of boid
+         :param boid_height: height of boid
+         :param range_min: minimum range of boid
+         :param range_fov: minimum range of boid
+         :param speed_max: maximum speed of boid
+         :param view_window: view window dataclass
         """
-        self.flock_count = flock_count
-        self.debug = False
-
-        # Set initial position and velocity
-        self.x = pos_x
-        self.y = pos_y
-        self.vel_x = x_vel
-        self.vel_y = y_vel
-        self.colour = colour
-        # self.generate_theta()
-        self.range_min = range_min
-        self.range_fov = range_fov
-        self.speed_max = speed_max
+        self.debug: bool = False
+        # Set initial boid properties
+        self.x: float = pos_x
+        self.y: float = pos_y
+        self.vel_x: float = x_vel
+        self.vel_y: float = y_vel
+        self.colour: list = colour
+        self.theta: float = 0
+        self.width: int = boid_width
+        self.height: int = boid_height
+        self.range_min: int = range_min
+        self.range_fov: int = range_fov
+        self.speed_min: int = 1
+        self.speed_max: int = speed_max
+        self.flock_count: int = flock_count
 
         # Define window parameters
-        self.window_height = window_height
-        self.window_width = window_width
-        self.buffer = buffer
-        self.buffer_turn = int(buffer / 2)
+        self.window_height: int = view_window.height
+        self.window_width: int = view_window.width
+        self.buffer: int = view_window.buffer
+        self.buffer_turn: int = int(view_window.buffer / 2)
+        self.mouse: Mouse = Mouse()
 
     def draw(self) -> None:
         """
@@ -112,14 +94,11 @@ class Boid():
             arcade.draw_circle_outline(self.x, self.y, self.range_min, (255, 0, 0, 200), 2, 0)
 
     # def move(self, boids_x: list, boids_y: list, boids_vel_x: list, boids_vel_y: list) -> None:
-    def move(self,
-             boid_flock: list,
-             mouse_x: float,
-             mouse_y: float,
-             mouse_chase: bool) -> None:
+    def move(self, boid_flock: list, mouse: Mouse) -> None:
         """
         Move the boid
         """
+        self.mouse = mouse
         seperation_dx: float = 0
         separation_dy: float = 0
         alignment_xvel: float = 0
@@ -157,12 +136,12 @@ class Boid():
         cohesion_x = ((cohesion_xavg / neighbour_count) - self.x) * cohesion_factor
         cohesion_y = ((cohesion_yavg / neighbour_count) - self.y) * cohesion_factor
 
-        if 0 < mouse_x and 0 < mouse_y:
-            dx = mouse_x - self.x
-            dy = mouse_y - self.y
+        if self.mouse.active:
+            dx = self.mouse.x - self.x
+            dy = self.mouse.y - self.y
             distance = sqrt(dx ** 2 + dy ** 2)
 
-            if mouse_chase:
+            if self.mouse.chase:
                 mouse_velx = dx * mouse_factor
                 mouse_vely = dy * mouse_factor
             else:
@@ -174,6 +153,15 @@ class Boid():
         self.vel_y += seperation_y + alignment_y + cohesion_y + mouse_vely
 
         # Set speed limits
+        self.speed_limit()
+
+        # Avoid the wall
+        self.avoid_wall()
+
+        # Update position with new velocity
+        self.update_position()
+
+    def speed_limit(self):
         speed = sqrt(self.vel_x * self.vel_x + self.vel_y * self.vel_y)
         if speed == 0:
             self.vel_x = self.speed_min
@@ -185,7 +173,7 @@ class Boid():
             self.vel_x = (self.vel_x / speed) * self.speed_min
             self.vel_y = (self.vel_y / speed) * self.speed_min
 
-        # Avoid the wall
+    def avoid_wall(self):
         if self.x < (0 + self.buffer):
             self.vel_x = self.vel_x + self.buffer_turn
         if self.x > (self.window_width - self.buffer):
@@ -195,7 +183,7 @@ class Boid():
         if self.y > (self.window_height - self.buffer):
             self.vel_y = self.vel_y - self.buffer_turn
 
-        # Update position with new velocity
+    def update_position(self):
         self.x += self.vel_x
         self.y += self.vel_y
 
