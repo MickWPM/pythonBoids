@@ -2,6 +2,7 @@ import os
 import arcade
 from dotenv import load_dotenv
 
+import BoidVisualiser
 from Flock import Flock
 from Mouse import Mouse
 
@@ -67,7 +68,9 @@ class BoidsWindow(arcade.Window):
 
         # Draw each flock
         for flock in self.flocks:
-            flock.draw()
+            #flock.draw()
+            BoidVisualiser.draw_flock(flock)
+
 
     def on_mouse_motion(self, x, y, dx, dy):
         """
