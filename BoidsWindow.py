@@ -2,6 +2,7 @@ import os
 import arcade
 from dotenv import load_dotenv
 
+import BoidVisualiser
 from Flock import Flock
 from Mouse import Mouse
 
@@ -29,7 +30,12 @@ class BoidsWindow(arcade.Window):
                        Flock(WIDTH, HEIGHT, MAXBOIDS, RANGE_MIN, RANGE_FOV),
                        Flock(WIDTH, HEIGHT, MAXBOIDS, RANGE_MIN, RANGE_FOV),
                        ]
-
+        
+        batch_visuals = os.getenv("BATCH_VISUALS", 'False').lower() in ('true', '1', 't')
+        if batch_visuals:
+            BoidVisualiser.setup_batches()  #Prelim work to enable batching & set batching flag for visuals
+        arcade.enable_timings() #required for FPS counter
+        
     def on_update(self, delta_time: float):
         for flock in self.flocks:
             flock.update(self.mouse)
@@ -57,6 +63,11 @@ class BoidsWindow(arcade.Window):
                          HEIGHT - 70,
                          [255, 255, 255, 128],
                          12)
+        arcade.draw_text(f"FPS: {arcade.get_fps():.2f}",
+                         WIDTH - 150,
+                         HEIGHT - 90,
+                         [255, 255, 255, 128],
+                         12)
 
         # Draw mouse
         if self.mouse.active:
@@ -67,7 +78,8 @@ class BoidsWindow(arcade.Window):
 
         # Draw each flock
         for flock in self.flocks:
-            flock.draw()
+            BoidVisualiser.draw_flock(flock)
+
 
     def on_mouse_motion(self, x, y, dx, dy):
         """

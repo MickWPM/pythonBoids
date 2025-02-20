@@ -59,6 +59,8 @@ class Flock:
         for key, boid in enumerate(self.boids_list):
             boid.move(self.boids_list, self.mouse)
 
-    def draw(self):
-        for boid in self.boids_list:
-            boid.draw()
+    def get_boid_colour(self):
+        return self.colour
+
+    def get_boid_width_and_height(self):
+        return (self.boid_width, self.boid_height)

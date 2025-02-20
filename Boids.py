@@ -1,5 +1,6 @@
 import arcade
-from math import atan, sin, cos, sqrt
+#from math import atan, sin, cos, sqrt
+from math import sqrt
 
 from Mouse import Mouse
 from ViewWindow import ViewWindow
@@ -56,42 +57,6 @@ class Boid():
         self.buffer: int = view_window.buffer
         self.buffer_turn: int = int(view_window.buffer / 2)
         self.mouse: Mouse = Mouse()
-
-    def draw(self) -> None:
-        """
-        Draw the boid
-        """
-        # Create x,y points for triangle, based on current self x,y
-        x1 = self.x - self.width
-        y1 = self.y
-        x2 = self.x + self.width
-        y2 = self.y
-
-        # Transpose - using trig, a is y, b is x
-        if self.vel_x == 0:
-            self.theta = atan(self.vel_y)
-        else:
-            self.theta = atan(self.vel_y / self.vel_x)
-        # Calculate the heading and adjust for x3
-        a = abs(round(self.height * sin(self.theta)))
-        b = abs(round(self.height * cos(self.theta)))
-        # print(f"2 a:{a} b:{b}")
-        if self.vel_x < 0:
-            x3 = self.x - b
-        else:
-            x3 = self.x + b
-        if self.vel_y < 0:
-            y3 = self.y - a
-        else:
-            y3 = self.y + a
-
-        # heading vector
-        arcade.draw_line(self.x, self.y, x3, y3, arcade.color.GRAY, 2)
-        # Boid - triangle
-        arcade.draw_triangle_filled(x1, y1, x2, y2, x3, y3, self.colour)
-        # draw range rings
-        if self.debug:
-            arcade.draw_circle_outline(self.x, self.y, self.range_min, (255, 0, 0, 200), 2, 0)
 
     # def move(self, boids_x: list, boids_y: list, boids_vel_x: list, boids_vel_y: list) -> None:
     def move(self, boid_flock: list, mouse: Mouse) -> None:
@@ -189,9 +154,10 @@ class Boid():
 
     def debug_vals(self) -> None:
         print(f"Boid x: {self.x} y: {self.y} x_vel:{self.vel_x} y_vel:{self.vel_y}")
-
+"""
     def generate_theta(self) -> None:
         if self.vel_x == 0:
             self.theta = atan(self.vel_y)
         else:
             self.theta = atan(self.vel_y / self.vel_x)
+            """
