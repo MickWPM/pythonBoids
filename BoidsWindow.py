@@ -30,6 +30,8 @@ class BoidsWindow(arcade.Window):
                        Flock(WIDTH, HEIGHT, MAXBOIDS, RANGE_MIN, RANGE_FOV),
                        Flock(WIDTH, HEIGHT, MAXBOIDS, RANGE_MIN, RANGE_FOV),
                        ]
+        
+        arcade.enable_timings()
 
     def on_update(self, delta_time: float):
         for flock in self.flocks:
@@ -58,6 +60,11 @@ class BoidsWindow(arcade.Window):
                          HEIGHT - 70,
                          [255, 255, 255, 128],
                          12)
+        arcade.draw_text(f"FPS: {arcade.get_fps():.2f}",
+                         WIDTH - 150,
+                         HEIGHT - 90,
+                         [255, 255, 255, 128],
+                         12)
 
         # Draw mouse
         if self.mouse.active:
@@ -68,7 +75,6 @@ class BoidsWindow(arcade.Window):
 
         # Draw each flock
         for flock in self.flocks:
-            #flock.draw()
             BoidVisualiser.draw_flock(flock)
 
 
