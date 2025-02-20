@@ -2,6 +2,7 @@ import os
 import arcade
 from dotenv import load_dotenv
 
+import BoidVisualiser
 from Flock import Flock
 from Mouse import Mouse
 
@@ -29,6 +30,10 @@ class BoidsWindow(arcade.Window):
                        Flock(WIDTH, HEIGHT, MAXBOIDS, RANGE_MIN, RANGE_FOV),
                        Flock(WIDTH, HEIGHT, MAXBOIDS, RANGE_MIN, RANGE_FOV),
                        ]
+        
+        BoidVisualiser.setup_batches()
+        arcade.enable_timings()
+            
 
     def on_update(self, delta_time: float):
         for flock in self.flocks:
