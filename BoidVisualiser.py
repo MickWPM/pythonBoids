@@ -13,6 +13,7 @@ use_instancing = False
 def setup_batches():
     global shape_list
     shape_list = arcade.ShapeElementList()
+    global use_instancing
     use_instancing = True
 
 def draw_flock(flock):
@@ -90,4 +91,4 @@ def draw(boid) -> None:
     # draw range rings
     #if boid.debug:
         #arcade.draw_circle_outline(boid.x, boid.y, boid.range_min, (255, 0, 0, 200), 2, 0)
-    arcade.draw_circle_outline(boid.x, boid.y, 5, (255, 200, 200, 200), 2, 0)
+    #arcade.draw_circle_outline(boid.x, boid.y, 5, (255, 200, 200, 200), 2, 0)

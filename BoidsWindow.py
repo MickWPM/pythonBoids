@@ -31,8 +31,10 @@ class BoidsWindow(arcade.Window):
                        Flock(WIDTH, HEIGHT, MAXBOIDS, RANGE_MIN, RANGE_FOV),
                        ]
         
-        BoidVisualiser.setup_batches()
-        arcade.enable_timings()
+        batch_visuals = os.getenv("BATCH_VISUALS", 'False').lower() in ('true', '1', 't')
+        if batch_visuals:
+            BoidVisualiser.setup_batches()  #Prelim work to enable batching & set batching flag for visuals
+        arcade.enable_timings() #required for FPS counter
         
     def on_update(self, delta_time: float):
         for flock in self.flocks:
