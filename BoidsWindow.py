@@ -30,6 +30,14 @@ class BoidsWindow(arcade.Window):
                        Flock(WIDTH, HEIGHT, MAXBOIDS, RANGE_MIN, RANGE_FOV),
                        Flock(WIDTH, HEIGHT, MAXBOIDS, RANGE_MIN, RANGE_FOV),
                        ]
+        self.predators = []
+        
+        for i in range (3):
+            predator = Flock(WIDTH, HEIGHT, 1, RANGE_MIN, RANGE_FOV)
+            predator.boid_height = 40
+            predator.boid_width = 20
+            predator.colour = arcade.color.RED
+            self.predators.append(predator)
         
         batch_visuals = os.getenv("BATCH_VISUALS", 'False').lower() in ('true', '1', 't')
         if batch_visuals:
@@ -38,6 +46,8 @@ class BoidsWindow(arcade.Window):
         
     def on_update(self, delta_time: float):
         for flock in self.flocks:
+            flock.update(self.mouse, self.predators)
+        for flock in self.predators:
             flock.update(self.mouse)
 
     def on_draw(self):
@@ -75,9 +85,15 @@ class BoidsWindow(arcade.Window):
                                       self.mouse.y,
                                       5,
                                       arcade.color.GREEN)
+            arcade.draw_circle_outline(self.mouse.x,
+                                      self.mouse.y,
+                                      100,
+                                      arcade.color.RED)
 
         # Draw each flock
         for flock in self.flocks:
+            BoidVisualiser.draw_flock(flock)
+        for flock in self.predators:
             BoidVisualiser.draw_flock(flock)
 
 

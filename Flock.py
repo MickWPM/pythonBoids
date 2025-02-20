@@ -54,13 +54,16 @@ class Flock:
             # new_boid.debug_vals()
             self.boids_list.append(new_boid)
 
-    def update(self, mouse: Mouse):
+    def update(self, mouse: Mouse, predators=None):
         self.mouse = mouse
         for key, boid in enumerate(self.boids_list):
-            boid.move(self.boids_list, self.mouse)
+            boid.move(self.boids_list, self.mouse, predators)
 
     def get_boid_colour(self):
         return self.colour
 
     def get_boid_width_and_height(self):
         return (self.boid_width, self.boid_height)
+    
+    def get_boid_list(self):
+        return self.boids_list

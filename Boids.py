@@ -59,7 +59,7 @@ class Boid():
         self.mouse: Mouse = Mouse()
 
     # def move(self, boids_x: list, boids_y: list, boids_vel_x: list, boids_vel_y: list) -> None:
-    def move(self, boid_flock: list, mouse: Mouse) -> None:
+    def move(self, boid_flock: list, mouse: Mouse, predators = None) -> None:
         """
         Move the boid
         """
@@ -74,6 +74,37 @@ class Boid():
         mouse_velx: float = 0
         mouse_vely: float = 0
 
+        mouse_factor = 0.005
+
+        if predators is not None:
+            max_distance = 99999
+            for predator_list in predators:
+                for predator in predator_list.get_boid_list():
+                    dx = predator.x - self.x
+                    dy = predator.y - self.y
+                    distance = sqrt(dx ** 2 + dy ** 2)
+                    max_distance = min(max_distance, distance)
+            
+            if max_distance < self.range_fov:
+                mouse_velx = (-dx / distance) * mouse_factor * 500
+                mouse_vely = (-dy / distance) * mouse_factor * 500
+
+        mouse_distance = 9999
+        if self.mouse.active:
+            dx = self.mouse.x - self.x
+            dy = self.mouse.y - self.y
+            distance = sqrt(dx ** 2 + dy ** 2)
+            mouse_distance = distance
+
+            if self.mouse.chase:
+                mouse_velx = dx * mouse_factor
+                mouse_vely = dy * mouse_factor
+            else:
+                if distance < self.range_fov:
+                    mouse_velx = (-dx / distance) * mouse_factor * 10
+                    mouse_vely = (-dy / distance) * mouse_factor * 10
+
+        alignment_distance = min(self.range_fov, mouse_distance)
         # Get the flock position and velocity data
         for boid in boid_flock:
             boid_range = sqrt((self.x - abs(boid.x)) ** 2 + (self.y - abs(boid.y)) ** 2)
@@ -82,7 +113,7 @@ class Boid():
                 seperation_dx += self.x - boid.x
                 separation_dy += self.y - boid.y
             # Alignment and Cohesion when in range
-            if boid_range <= self.range_fov:
+            if boid_range <= alignment_distance:
                 alignment_xvel += boid.vel_x
                 alignment_yvel += boid.vel_y
                 cohesion_xavg += boid.x
@@ -92,7 +123,6 @@ class Boid():
         seperation_factor = 0.1
         alignment_factor = 0.05
         cohesion_factor = 0.01
-        mouse_factor = 0.005
 
         seperation_x = seperation_dx * seperation_factor
         seperation_y = separation_dy * seperation_factor
@@ -100,18 +130,6 @@ class Boid():
         alignment_y = ((alignment_yvel / neighbour_count) - self.vel_y) * alignment_factor
         cohesion_x = ((cohesion_xavg / neighbour_count) - self.x) * cohesion_factor
         cohesion_y = ((cohesion_yavg / neighbour_count) - self.y) * cohesion_factor
-
-        if self.mouse.active:
-            dx = self.mouse.x - self.x
-            dy = self.mouse.y - self.y
-            distance = sqrt(dx ** 2 + dy ** 2)
-
-            if self.mouse.chase:
-                mouse_velx = dx * mouse_factor
-                mouse_vely = dy * mouse_factor
-            else:
-                mouse_velx = (-dx / distance) * mouse_factor * 10
-                mouse_vely = (-dy / distance) * mouse_factor * 10
 
         # Update velocity with boid properties
         self.vel_x += seperation_x + alignment_x + cohesion_x + mouse_velx
