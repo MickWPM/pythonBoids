@@ -9,19 +9,18 @@ def normalize(v):
        return v
     return v / norm
 
-def draw_flock(flock):
-    for boid in flock.boids_list:
-        draw(boid)
-
+use_instancing = False
 def setup_batches():
     global shape_list
     shape_list = arcade.ShapeElementList()
+    use_instancing = True
 
 def draw_flock(flock):
-    draw_flock_instanced(flock)
-    #for boid in flock.boids_list:
-     #  draw(boid)
-    
+    if use_instancing:
+        draw_flock_instanced(flock)
+    else:
+        for boid in flock.boids_list:
+            draw(boid)
 
 def draw_flock_instanced(flock):
     point_list = []
@@ -34,7 +33,13 @@ def draw_flock_instanced(flock):
         point_list.append((x3, y3))
         for i in range(4):
             colour_list.append(boid.colour)
-    shape = arcade.create_rectangles_filled_with_colors(point_list, colour_list)
+
+    #To batch - there is a create_rectangles_filled_with_colors method but we need to use the rectangles one here. 
+    # The fourth point of the rectangle is forced to the same as the third point (not ideal but works)
+    # triangles_filled is only for triangle strips (GL_TRIANGLE_STRIP). ref:
+    #https://api.arcade.academy/en/2.6.1/_modules/arcade/buffered_draw_commands.html#create_rectangles_filled_with_colors
+    #The other option would be to create a subclass of arcade Shape that amended the gl mode but this is much easier and still fast
+    shape = arcade.create_rectangles_filled_with_colors(point_list, colour_list)       
     shape_list.append(shape)
     shape_list.draw()
     shape_list.remove(shape)
@@ -80,7 +85,7 @@ def draw(boid) -> None:
     # heading vector
     #arcade.draw_line(boid.x, boid.y, x3, y3, arcade.color.GRAY, 2)
     # Boid - triangle
-    #arcade.draw_triangle_filled(x1, y1, x2, y2, x3, y3, boid.colour)
+    arcade.draw_triangle_filled(x1, y1, x2, y2, x3, y3, boid.colour)
     # draw range rings
     #if boid.debug:
         #arcade.draw_circle_outline(boid.x, boid.y, boid.range_min, (255, 0, 0, 200), 2, 0)
