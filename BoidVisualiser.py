@@ -26,14 +26,17 @@ def draw_flock(flock):
 def draw_flock_instanced(flock):
     point_list = []
     colour_list = []
+    width, height = flock.get_boid_width_and_height()
+    half_width = width * 0.5
+    colour = flock.get_boid_colour()
     for boid in flock.boids_list:
-        x1, y1, x2, y2, x3, y3 = get_triangle_points(boid)
+        x1, y1, x2, y2, x3, y3 = get_triangle_points(boid, height, half_width)
         point_list.append((x1, y1))
         point_list.append((x2, y2))
         point_list.append((x3, y3))
         point_list.append((x3, y3))
         for i in range(4):
-            colour_list.append(boid.colour)
+            colour_list.append(colour)
 
     #To batch - there is a create_rectangles_filled_with_colors method but we need to use the rectangles one here. 
     # The fourth point of the rectangle is forced to the same as the third point (not ideal but works)
@@ -45,7 +48,7 @@ def draw_flock_instanced(flock):
     shape_list.draw()
     shape_list.remove(shape)
 
-def get_triangle_points(boid):
+def get_triangle_points(boid, height = 50, half_width = 4):
     # Create x,y points for triangle, based on current boid x,y
     x1 = boid.x - boid.width
     y1 = boid.y
@@ -70,13 +73,28 @@ def get_triangle_points(boid):
     else:
         y3 = boid.y + a
 
-    return (x1, y1, x2, y2, x3, y3)
-"""
     velocity_vector = np.array([boid.vel_x, boid.vel_y])
     position_vector = np.array([boid.x, boid.y])
     velocity_vector_normalised = normalize(velocity_vector)
-    triangle_middle_base = position_vector - velocity_vector_normalised * 15
-"""
+    triangle_middle_base = position_vector - velocity_vector_normalised * height
+    
+    #Linear algebra! If we define dx = x2 - x1 and dy = y2 - y1, then the normals are (-dy, dx) and (dy, -dx).
+    #P1 = position vector
+    #B2 = position vector - velocity = triangle middle base
+    #Normal calcs dV = P2 - P1
+    #Right base offset = N1 = (-dV[1], dV[0])
+    #Left base offset = N2 = (dV[1], -dV[0])
+    #Therefore Triangle points = P1, P2 = B2+N1, P3 = B2+N2
+
+    dV = triangle_middle_base - position_vector
+    N1 = normalize( np.array((-dV[1], dV[0])) ) * half_width
+    N2 = normalize ( np.array((dV[1], -dV[0])) ) * half_width
+    
+    P2 = triangle_middle_base + N1
+    P3 = triangle_middle_base + N2
+
+    #return (x1, y1, x2, y2, x3, y3)
+    return (boid.x, boid.y, P2[0], P2[1], P3[0], P3[1])
 
 def draw(boid) -> None:
     """
